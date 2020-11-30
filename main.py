@@ -1,7 +1,8 @@
+import glob
+import os
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-import os
 
 
 def watermark(input_image_path, output_image_path, watermark_text='michaelllewelyn.com',
@@ -13,7 +14,7 @@ def watermark(input_image_path, output_image_path, watermark_text='michaelllewel
     photo = Image.open(input_image_path).convert('RGBA')
 
     # Load Helvetica Bold
-    font = ImageFont.truetype("Helvetica-Font/Helvetica-Bold.ttf", round(photo.width / 15))
+    font = ImageFont.truetype("fonts/Helvetica-Bold.ttf", round(photo.width / 15))
 
     # Draw the watermark text on a new RGBA layer in the centre + vertical offset
     text_layer = Image.new("RGBA", photo.size, (255, 255, 255, 0))
@@ -26,15 +27,23 @@ def watermark(input_image_path, output_image_path, watermark_text='michaelllewel
     # Merge the photo and watermark layers
     out = Image.alpha_composite(photo, text_layer)
 
-    out.show()
+    # out.show()
     out.save(output_image_path)
 
 
 if __name__ == '__main__':
-    in_folder = '../unmarked-website-folders/test/'
-    out_folder = '../watermarked-website-folders/test/'
+    in_folder = '../unmarked-website-folders/2018 Jul-Aug Botswana/'
+    out_folder = '../watermarked-website-folders/2018 Jul-Aug Botswana/'
+    in_type = 'jpeg'
 
     # Loop over all the files in the in_folder
-    for image in os.listdir(in_folder):
-        title, extension = image.split('.')
-        watermark(in_folder + image, out_folder + title + '_watermarked.png')
+    images = glob.glob(in_folder + '*.' + in_type)
+    count = len(images)
+    completed = 0
+    for image in images:
+        print(title := image.split('\\')[-1].split('.')[0])
+
+        watermark(image, out_folder + title + '_watermarked.png')
+        completed += 1
+
+        print(f"Completed {completed} out of {count}.")
