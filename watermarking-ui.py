@@ -14,6 +14,8 @@ class App:
                 [Sg.Checkbox('Horizontal Centre', default=True, enable_events=True, key='-H CEN-'),
                  Sg.Checkbox('Vertical Centre', default=False, enable_events=True, key='-V CEN-')],
                 [Sg.Text('_' * 60)],
+                [Sg.Text('Watermark Text:'), Sg.InputText(enable_events=True, key='-WATERMARK TEXT-')],
+                [Sg.Text('_' * 60)],
                 [Sg.Text('Out Folder'), Sg.In(enable_events=True, key='-OUT FOLDER-'), Sg.FolderBrowse()],
                 [Sg.Save('Save + Next', key='-SAVE-', disabled=True)]]
 
@@ -38,6 +40,7 @@ class App:
         self.centre_horizontal = True
         self.centre_vertical = False
         self.out_folder = None
+        self.watermark_text = ''
 
         self._running = True
         self.event_loop()
@@ -64,6 +67,10 @@ class App:
             elif event == '-OUT FOLDER-':  # Set the folder to save files into
                 self.out_folder = values['-OUT FOLDER-']
                 self.window['-SAVE-'].update(disabled=False)
+
+            elif event == '-WATERMARK TEXT-':  # Changing the watermark text
+                self.watermark_text = values['-WATERMARK TEXT-']
+                print('new text:' + values['-WATERMARK TEXT-'])
 
             elif event == '-FILE LIST-':  # A file was chosen from the listbox
                 self.current_filename = values['-FILE LIST-'][0]
@@ -120,8 +127,8 @@ class App:
             print(f'** Error {E} **')
             pass  # something weird happened making the full filename
 
-    def watermark(self, input_image, centre, watermark_text='michaelllewelyn.com',
-                  opacity=0.5):
+    def watermark(self, input_image, centre, opacity=0.5):
+        print('using' + self.watermark_text)
         # The opaque white colour used for the watermark
         op_white = (255, 255, 255, round(255 * opacity))
 
@@ -134,7 +141,7 @@ class App:
         # Draw the watermark text on a new RGBA layer
         text_layer = Image.new("RGBA", photo.size, (255, 255, 255, 0))
         text_drawing = ImageDraw.Draw(text_layer)
-        text_width, text_height = text_drawing.textsize(watermark_text, font=font)
+        text_width, text_height = text_drawing.textsize(self.watermark_text, font=font)
 
         x_pos = min(centre[0], photo.width)
         y_pos = min(-centre[1], photo.height)
@@ -145,7 +152,7 @@ class App:
 
         text_drawing.text((x_pos - (text_width // 2),
                            y_pos - (text_height // 2)),
-                          watermark_text, font=font, fill=op_white)
+                          self.watermark_text, font=font, fill=op_white)
 
         # Merge the photo and watermark layers
         return Image.alpha_composite(photo, text_layer).convert("RGB")
